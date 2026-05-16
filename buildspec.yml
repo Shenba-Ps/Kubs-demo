@@ -2,27 +2,53 @@ version: 0.2
 
 env:
   variables:
-    ImageName: springeksapp
-    AccountId: 847460071840
-    Region: us-east-1
+    IMAGE_NAME: springeksapp
+    AWS_ACCOUNT_ID: 847460071840
+    AWS_DEFAULT_REGION: ap-southeast-1
+    CLUSTER_NAME: spring-cluster
 
 phases:
+
+  install:
+    runtime-versions:
+      java: corretto17
+
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $Region | docker login --username AWS --password-stdin $AccountId.dkr.ecr.$Region.amazonaws.com
-      - export IMAGE_TAG=$CODEBUILD_BUILD_NUMBER
+      - echo Logging into Amazon ECR
+
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+
+      - export IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 7)
+
       - echo IMAGE_TAG=$IMAGE_TAG
 
   build:
     commands:
+      - echo Maven Build Started
+
       - mvn clean package -DskipTests
-      - docker build -t $ImageName:$IMAGE_TAG .
-      - docker tag $ImageName:$IMAGE_TAG $AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
+
+      - docker build -t $IMAGE_NAME:$IMAGE_TAG .
+
+      - docker tag $IMAGE_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
+
+      - docker tag $IMAGE_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_NAME:latest
 
   post_build:
     commands:
-      - docker push $AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
-      - aws eks update-kubeconfig --region $Region --name spring-cluster
-      - kubectl set image deployment/$ImageName spring-docker=$AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
-      - kubectl rollout status deployment/$ImageName
+      - echo Push Docker Images
+
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
+
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_NAME:latest
+
+      - echo Updating kubeconfig
+
+      - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $CLUSTER_NAME
+
+      - kubectl set image deployment/$IMAGE_NAME spring-docker=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG
+
+      - kubectl rollout restart deployment/$IMAGE_NAME
+
+      - kubectl rollout status deployment/$IMAGE_NAME

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: springeksapp
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: springeksapp
+
+  template:
+    metadata:
+      labels:
+        app: springeksapp
+
+    spec:
+      containers:
+        - name: spring-docker
+
+          image: 847460071840.dkr.ecr.ap-southeast-1.amazonaws.com/springeksapp:latest
+
+          imagePullPolicy: Always
+
+          ports:
+            - containerPort: 8080
