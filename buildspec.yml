@@ -8,6 +8,8 @@ phases:
 
   build:
     commands:
+      - echo Build Spring Boot JAR...
+      - mvn clean package -DskipTests
       - echo Build Docker image...
       - docker build -t springeksapp .
       - docker tag springeksapp:latest <account_id>.dkr.ecr.ap-southeast-1.amazonaws.com/springeksapp:latest
