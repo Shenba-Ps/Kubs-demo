@@ -15,8 +15,7 @@ phases:
 
   pre_build:
     commands:
-      - echo Logging into Singapore ECR
-
+      - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $Region | docker login --username AWS --password-stdin $AccountId.dkr.ecr.$Region.amazonaws.com
 
       - export IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 7)
@@ -25,6 +24,8 @@ phases:
 
   build:
     commands:
+      - echo Build started...
+
       - mvn clean package -DskipTests
 
       - docker build --no-cache -t $ImageName:$IMAGE_TAG .
@@ -35,14 +36,24 @@ phases:
 
   post_build:
     commands:
+      - echo Pushing Docker images...
+
       - docker push $AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
 
       - docker push $AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:latest
 
+      - echo Updating kubeconfig...
+
       - aws eks update-kubeconfig --region $Region --name $ClusterName
+
+      - echo Updating deployment image...
 
       - kubectl set image deployment/springeksapp spring-docker=$AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
 
       - kubectl rollout restart deployment/springeksapp
 
       - kubectl rollout status deployment/springeksapp
+
+artifacts:
+  files:
+    - '**/*'
