@@ -19,6 +19,8 @@ phases:
 
       - export IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 7)
 
+      - echo IMAGE_TAG=$IMAGE_TAG
+
   build:
     commands:
       - mvn clean package -DskipTests
@@ -38,5 +40,7 @@ phases:
       - aws eks update-kubeconfig --region $Region --name $ClusterName
 
       - kubectl set image deployment/springeksapp spring-docker=$AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
+
+      - kubectl rollout restart deployment/springeksapp
 
       - kubectl rollout status deployment/springeksapp

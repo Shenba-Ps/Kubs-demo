@@ -16,4 +16,9 @@ public class SpringEksApplication {
 	public String hello(){
 	return "New  deployed 1";
 }
+
+	@GetMapping("/get")
+	public String hello1(){
+		return "New  deployed 1";
+	}
 }
