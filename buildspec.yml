@@ -21,5 +21,5 @@ phases:
     commands:
       - docker push $AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
       - aws eks update-kubeconfig --region $Region --name spring-cluster
-      - kubectl set image deployment/$ImageName $ImageName=$AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
+      - kubectl set image deployment/$ImageName spring-docker=$AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
       - kubectl rollout status deployment/$ImageName
