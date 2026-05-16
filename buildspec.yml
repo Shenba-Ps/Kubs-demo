@@ -11,12 +11,15 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $Region | docker login --username AWS --password-stdin $AccountId.dkr.ecr.$Region.amazonaws.com
-      - IMAGE_TAG=$CODEBUILD_BUILD_NUMBER
+      - export IMAGE_TAG=$CODEBUILD_BUILD_NUMBER
+      - echo IMAGE_TAG=$IMAGE_TAG
+
   build:
     commands:
       - mvn clean package -DskipTests
-      - docker build -t $ImageName:$IMAGE_TAG -f Dockerfile .
+      - docker build -t $ImageName:$IMAGE_TAG .
       - docker tag $ImageName:$IMAGE_TAG $AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
+
   post_build:
     commands:
       - docker push $AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
