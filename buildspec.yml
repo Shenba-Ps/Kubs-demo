@@ -39,11 +39,11 @@ phases:
 
       - docker push $AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
 
-      - echo Updating kubeconfig
+      - echo Update kubeconfig
 
       - aws eks update-kubeconfig --region $Region --name $ClusterName
 
-      - echo Updating deployment image
+      - echo Update deployment image
 
       - kubectl set image deployment/springeksapp spring-docker=$AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
 
