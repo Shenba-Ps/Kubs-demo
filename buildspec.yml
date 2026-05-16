@@ -4,7 +4,7 @@ env:
   variables:
     ImageName: springeksapp
     AccountId: 847460071840
-    Region: ap-southeast-1
+    Region: us-east-1
 
 phases:
   install:
