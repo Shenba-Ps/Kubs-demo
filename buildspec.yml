@@ -1,23 +1,24 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      java: corretto17
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 847460071840.dkr.ecr.ap-southeast-1.amazonaws.com
-
   build:
     commands:
       - echo Build Spring Boot JAR...
       - mvn clean package -DskipTests
       - echo Build Docker image...
       - docker build -t springeksapp .
-      - docker tag springeksapp:latest <account_id>.dkr.ecr.ap-southeast-1.amazonaws.com/springeksapp:latest
-
+      - docker tag springeksapp:latest 847460071840.dkr.ecr.ap-southeast-1.amazonaws.com/springeksapp:latest
   post_build:
     commands:
       - echo Push Docker image to ECR...
-      - docker push <account_id>.dkr.ecr.ap-southeast-1.amazonaws.com/springeksapp:latest
+      - docker push 847460071840.dkr.ecr.ap-southeast-1.amazonaws.com/springeksapp:latest
       - echo Update Kubernetes deployment...
       - aws eks update-kubeconfig --region ap-southeast-1 --name spring-cluster
-      - kubectl set image deployment/springeksapp springeksapp=<account_id>.dkr.ecr.ap-southeast-1.amazonaws.com/springeksapp:latest
+      - kubectl set image deployment/springeksapp springeksapp=847460071840.dkr.ecr.ap-southeast-1.amazonaws.com/springeksapp:latest
