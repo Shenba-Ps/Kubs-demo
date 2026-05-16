@@ -14,6 +14,6 @@ public class SpringEksApplication {
 	}
    @GetMapping("/message")
 	public String hello(){
-	return "New build deployed";
+	return "New  deployed";
 }
 }
