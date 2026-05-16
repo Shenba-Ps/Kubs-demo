@@ -7,9 +7,6 @@ env:
     Region: us-east-1
 
 phases:
-  install:
-    runtime-versions:
-      java: corretto17
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -17,16 +14,12 @@ phases:
       - IMAGE_TAG=$CODEBUILD_BUILD_NUMBER
   build:
     commands:
-      - echo Build Spring Boot JAR...
       - mvn clean package -DskipTests
-      - echo Build Docker image...
       - docker build -t $ImageName:$IMAGE_TAG -f Dockerfile .
       - docker tag $ImageName:$IMAGE_TAG $AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
   post_build:
     commands:
-      - echo Push Docker image to ECR...
       - docker push $AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
-      - echo Update Kubernetes deployment...
       - aws eks update-kubeconfig --region $Region --name spring-cluster
       - kubectl set image deployment/$ImageName $ImageName=$AccountId.dkr.ecr.$Region.amazonaws.com/$ImageName:$IMAGE_TAG
       - kubectl rollout status deployment/$ImageName
